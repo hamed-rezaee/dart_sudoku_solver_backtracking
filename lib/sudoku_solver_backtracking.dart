@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 class SudokuSolver {
-  SudokuSolver([this.animationDuration = const Duration(milliseconds: 100)]);
+  SudokuSolver([this.animationDuration = const Duration(milliseconds: 50)]);
 
   final Duration animationDuration;
 
@@ -57,8 +57,24 @@ class SudokuSolver {
     for (int i = 0; i < grid.length; i++) {
       final StringBuffer row = StringBuffer();
 
-      for (int j = 0; j < grid.length; j++) {
+      for (int j = 0; j < grid.length / 3; j++) {
         row.write('${grid[i][j]} ');
+      }
+
+      row.write('| ');
+
+      for (int j = grid.length ~/ 3; j < grid.length / 3 * 2; j++) {
+        row.write('${grid[i][j]} ');
+      }
+
+      row.write('| ');
+
+      for (int j = grid.length ~/ 3 * 2; j < grid.length; j++) {
+        row.write('${grid[i][j]} ');
+      }
+
+      if (i % 3 == 0 && i != 0) {
+        stdout.writeln('------+-------+------');
       }
 
       stdout.writeln(row);
