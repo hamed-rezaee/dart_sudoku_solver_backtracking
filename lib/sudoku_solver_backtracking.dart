@@ -2,13 +2,18 @@ import 'dart:async';
 import 'dart:io';
 
 class SudokuSolver {
-  SudokuSolver([this.animationDuration = const Duration(milliseconds: 300)]);
+  SudokuSolver([this.animationDuration = const Duration(milliseconds: 100)]);
 
   final Duration animationDuration;
 
-  final StreamController streamController = StreamController<List<List<int>>>();
+  final StreamController<List<List<int>>> streamController =
+      StreamController<List<List<int>>>();
 
-  Future solve(List<List<int>> grid, [int row = 0, int col = 0]) async {
+  Future<bool> solve(
+    List<List<int>> grid, [
+    int row = 0,
+    int col = 0,
+  ]) async {
     await Future<void>.delayed(animationDuration);
 
     streamController.add(clone(grid));
@@ -16,7 +21,7 @@ class SudokuSolver {
     if (row == grid.length) {
       return true;
     } else if (col == grid.length) {
-      return solve(grid, row + 1, 0);
+      return solve(grid, row + 1);
     } else if (grid[row][col] != 0) {
       return solve(grid, row, col + 1);
     } else {
@@ -37,7 +42,7 @@ class SudokuSolver {
   }
 
   static List<List<int>> clone(List<List<int>> grid) {
-    List<List<int>> copy = [];
+    final List<List<int>> copy = <List<int>>[];
 
     for (int i = 0; i < grid.length; i++) {
       copy.add(grid[i].toList());
@@ -50,10 +55,10 @@ class SudokuSolver {
     stdout.writeln('\x1B[2J\x1B[0;0H');
 
     for (int i = 0; i < grid.length; i++) {
-      String row = '';
+      final StringBuffer row = StringBuffer();
 
       for (int j = 0; j < grid.length; j++) {
-        row += '${grid[i][j]} ';
+        row.write('${grid[i][j]} ');
       }
 
       stdout.writeln(row);
@@ -63,8 +68,9 @@ class SudokuSolver {
   }
 
   bool _isValid(List<List<int>> grid, int row, int col, int value) {
-    bool notInRow = grid[row].every((int element) => element != value);
-    bool notInCol = grid.every((List<int> row) => row[col] != value);
+    final bool notInRow = grid[row].every((int element) => element != value);
+    final bool notInCol = grid.every((List<int> row) => row[col] != value);
+
     bool notInBox = true;
 
     for (int i = 0; i < 3; i++) {
