@@ -2,6 +2,8 @@
 
 Sudoku Solver is a Dart package that provides a Sudoku puzzle solver using the backtracking algorithm. It allows you to input Sudoku puzzles as 2D grids and find solutions for them.
 
+![Sudoku Solver](/sudoku.gif)
+
 ### Features
 
 - Solve Sudoku puzzles of various difficulty levels.
