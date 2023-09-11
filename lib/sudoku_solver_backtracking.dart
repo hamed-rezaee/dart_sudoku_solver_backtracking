@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'dart:io';
 
@@ -10,26 +12,27 @@ class SudokuSolver {
       StreamController<List<List<int>>>();
 
   Future<bool> solve(
-    List<List<int>> grid, [
-    int row = 0,
-    int col = 0,
+    List<List<int>> grid,
+    DateTime? startTime, [
+    int? row = 0,
+    int? col = 0,
   ]) async {
     await Future<void>.delayed(animationDuration);
 
     streamController.add(clone(grid));
 
-    if (row == grid.length) {
+    if (row == null && col == null) {
       return true;
-    } else if (col == grid.length) {
-      return solve(grid, row + 1);
-    } else if (grid[row][col] != 0) {
-      return solve(grid, row, col + 1);
     } else {
       for (int value = 1; value <= grid.length; value++) {
-        if (_isValid(grid, row, col, value)) {
+        if (_isValid(grid, row!, col!, value)) {
           grid[row][col] = value;
 
-          if (await solve(grid, row, col + 1)) {
+          if (await getNewPriority(grid, startTime: startTime)) {
+            final DateTime endTime = DateTime.now();
+            final Duration duration = endTime.difference(startTime!);
+
+            print('App has been running for: ${duration.inSeconds} seconds');
             return true;
           }
 
@@ -52,8 +55,6 @@ class SudokuSolver {
   }
 
   static void printGrid(List<List<int>> grid) {
-    stdout.writeln('\x1B[2J\x1B[0;0H');
-
     for (int i = 0; i < grid.length; i++) {
       final StringBuffer row = StringBuffer();
 
@@ -98,6 +99,74 @@ class SudokuSolver {
     }
 
     return notInRow && notInCol && notInBox;
+  }
+
+  Future<bool> getNewPriority(List<List<int>> grid,
+      {DateTime? startTime}) async {
+    int? priorityX;
+    int? priorityY;
+
+    int highestRank = 0;
+
+    for (int i = 0; i < 9; i++) {
+      for (int j = 0; j < 9; j++) {
+        if (grid[i][j] == 0) {
+          final int itemRank = getRank(i, j, grid);
+          if (itemRank > highestRank) {
+            priorityX = i;
+            priorityY = j;
+            highestRank = itemRank;
+          }
+        }
+      }
+    }
+
+    return solve(grid, startTime, priorityX, priorityY);
+  }
+
+  int getRank(
+    int i,
+    int j,
+    List<List<int>> grid,
+  ) {
+    int numbersInRow = 0;
+    int numbersInColumn = 0;
+    int numberInSquare = 0;
+    for (final int element in grid[i]) {
+      if (element != 0) {
+        numbersInRow++;
+      }
+    }
+    for (int row = 0; row < 9; row++) {
+      if (grid[row][j] != 0) {
+        numbersInColumn++;
+      }
+    }
+    numberInSquare = getSquareRank(i, j, grid);
+    return numberInSquare + numbersInColumn + numbersInRow;
+  }
+
+  int getSquareRank(
+    int i,
+    int j,
+    List<List<int>> grid,
+  ) {
+    final int cellsToleft = j % 3;
+    final int cellsToRight = 2 - cellsToleft;
+
+    final int cellsToUp = i % 3;
+    final int cellsToDown = 2 - cellsToUp;
+
+    int squareRank = 0;
+
+    for (int x = j - cellsToleft; x <= j + cellsToRight; x++) {
+      for (int y = i - cellsToUp; y <= i + cellsToDown; y++) {
+        if (grid[x][y] != 0) {
+          squareRank++;
+        }
+      }
+    }
+    return squareRank;
   }
 
   void dispose() => streamController.close();
